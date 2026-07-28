@@ -1,0 +1,16 @@
+# Vagrant & VirtualBox
+.vagrant/
+
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# IDE / Editors
+.vscode/
+.idea/

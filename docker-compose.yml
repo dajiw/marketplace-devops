@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+
+  frontend:
+    build: ./services/frontend
+    container_name: marketplace-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - catalog-service
+      - order-service
+
+  catalog-service:
+    build: ./services/catalog-service
+    container_name: marketplace-catalog
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+    restart: always
+
+  order-service:
+    build: ./services/order-service
+    container_name: marketplace-order
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+    restart: always
