@@ -39,7 +39,7 @@ jobs:
       - name: Build and Push Catalog Image
         uses: docker/build-push-action@v6
         with:
-          context: ./services/catalog
+          context: ./services/catalog-service
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/marketplace-catalog-service:latest
 
@@ -47,6 +47,6 @@ jobs:
       - name: Build and Push Order Image
         uses: docker/build-push-action@v6
         with:
-          context: ./services/order
+          context: ./services/order-service
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/marketplace-order-service:latest
