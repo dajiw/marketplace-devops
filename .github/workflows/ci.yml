@@ -1,32 +1,52 @@
 name: CI Marketplace Pipeline
 
-# 1. ТРИГГЕРЫ: Когда запускать автосборку?
 on:
   push:
-    branches: [ "main" ]  # При каждом push в ветку main
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]  # При создании Pull Request в main
+    branches: [ "main" ]
 
-# 2. ЗАДАЧИ: Что именно должна делать облачная машина?
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest  # GitHub поднимет чистую виртуалку Ubuntu
+  build-and-push:
+    runs-on: ubuntu-latest
 
     steps:
-      # Шаг 1: Скачиваем исходный код из твоего GitHub-репозитория на виртуалку
+      # 1. Скачиваем код из репозитория
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Шаг 2: Проверяем валидность docker-compose.yml (нет ли синтаксических ошибок)
-      - name: Validate Docker Compose Configuration
-        run: docker compose config
+      # 2. Логинимся в Docker Hub с помощью наших Secrets
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Шаг 3: Собираем все 3 Docker-образа (frontend, catalog, order)
-      - name: Build Docker Images
-        run: docker compose build
+      # 3. Настраиваем Buildx для оптимальной сборки
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # Шаг 4: Тестовый запуск всех сервисов в CI-среде
-      - name: Run containers and check status
-        run: |
-          docker compose up -d
-          docker compose ps
+      # 4. Сборка и Пуш Frontend
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/marketplace-frontend:latest
+
+      # 5. Сборка и Пуш Catalog Service
+      - name: Build and Push Catalog Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/catalog
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/marketplace-catalog-service:latest
+
+      # 6. Сборка и Пуш Order Service
+      - name: Build and Push Order Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/order
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/marketplace-order-service:latest
