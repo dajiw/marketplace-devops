@@ -1,0 +1,32 @@
+name: CI Marketplace Pipeline
+
+# 1. ТРИГГЕРЫ: Когда запускать автосборку?
+on:
+  push:
+    branches: [ "main" ]  # При каждом push в ветку main
+  pull_request:
+    branches: [ "main" ]  # При создании Pull Request в main
+
+# 2. ЗАДАЧИ: Что именно должна делать облачная машина?
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest  # GitHub поднимет чистую виртуалку Ubuntu
+
+    steps:
+      # Шаг 1: Скачиваем исходный код из твоего GitHub-репозитория на виртуалку
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Шаг 2: Проверяем валидность docker-compose.yml (нет ли синтаксических ошибок)
+      - name: Validate Docker Compose Configuration
+        run: docker compose config
+
+      # Шаг 3: Собираем все 3 Docker-образа (frontend, catalog, order)
+      - name: Build Docker Images
+        run: docker compose build
+
+      # Шаг 4: Тестовый запуск всех сервисов в CI-среде
+      - name: Run containers and check status
+        run: |
+          docker compose up -d
+          docker compose ps
