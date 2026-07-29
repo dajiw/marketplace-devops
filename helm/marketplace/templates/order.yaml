@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: {{ .Values.order.replicaCount }}
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+      - name: order-service
+        image: "{{ .Values.global.repositoryPrefix }}/{{ .Values.order.image.name }}:{{ .Values.order.image.tag }}"
+        imagePullPolicy: {{ .Values.order.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.order.service.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.order.service.port }}
+    targetPort: {{ .Values.order.service.port }}
+  selector:
+    app: order-service

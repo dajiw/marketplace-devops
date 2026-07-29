@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+spec:
+  replicas: {{ .Values.catalog.replicaCount }}
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      containers:
+      - name: catalog-service
+        image: "{{ .Values.global.repositoryPrefix }}/{{ .Values.catalog.image.name }}:{{ .Values.catalog.image.tag }}"
+        imagePullPolicy: {{ .Values.catalog.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.catalog.service.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.catalog.service.port }}
+    targetPort: {{ .Values.catalog.service.port }}
+  selector:
+    app: catalog-service
